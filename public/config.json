@@ -1,0 +1,12 @@
+{
+  "brand": {
+    "name": "Arena Mandarin",
+    "tagline": "Bermain sambil belajar Bahasa Mandarin! 汉语真好玩",
+    "logo": "🀄",
+    "primary": "#2BB3A3",
+    "secondary": "#F4695F"
+  },
+  "defaults": { "level": "beginner", "focus": "all", "questions": 30 },
+  "games": { "disabled": [] },
+  "admin": { "pin": "1234" }
+}

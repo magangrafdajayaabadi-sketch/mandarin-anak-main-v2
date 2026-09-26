@@ -1,0 +1,10 @@
+{
+  "name": "arena-belajar-mandarin",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Arena game belajar bahasa Mandarin untuk anak — 18 mini-game, static site, siap deploy ke Vercel.",
+  "scripts": {
+    "dev": "npx --yes serve public -l 3000",
+    "start": "npx --yes serve public -l 3000"
+  }
+}

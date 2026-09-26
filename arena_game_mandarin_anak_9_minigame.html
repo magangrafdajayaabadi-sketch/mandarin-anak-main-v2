@@ -1,0 +1,172 @@
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Arena game belajar Mandarin anak dengan sembilan mini-game: tebak kata, tebak nada, susun kalimat, cocokkan angka, kata ukur, tebak pinyin, hari dan waktu, lengkapi dialog, dan kartu memori.</h2>
+<style>
+.gcard{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:0.9rem 1rem;cursor:pointer}
+.gcard:hover{border-color:var(--border-strong)}
+.gcard:active{transform:scale(.98)}
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 16px;font-size:16px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:var(--surface-2);cursor:pointer}
+.opt:hover{background:var(--surface-1)}
+.chip{display:inline-block;margin:4px;padding:10px 16px;font-size:17px;border-radius:20px;border:0.5px solid var(--border-strong);background:var(--surface-2);cursor:pointer}
+.chip:hover{background:var(--surface-1)}
+.mem{height:64px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;padding:4px;text-align:center}
+</style>
+
+<div id="menu">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;" id="menugrid"></div>
+</div>
+<div id="game"></div>
+
+<script>
+const VOCAB=[["猫","māo","kucing"],["狗","gǒu","anjing"],["鸟","niǎo","burung"],["鱼","yú","ikan"],["兔子","tùzi","kelinci"],["大象","dàxiàng","gajah"],["熊猫","xióngmāo","panda"],["米饭","mǐfàn","nasi"],["面条","miàntiáo","mie"],["水","shuǐ","air"],["牛奶","niúnǎi","susu"],["苹果","píngguǒ","apel"],["香蕉","xiāngjiāo","pisang"],["爸爸","bàba","ayah"],["妈妈","māma","ibu"],["哥哥","gēge","kakak laki-laki"],["妹妹","mèimei","adik perempuan"],["老师","lǎoshī","guru"],["学生","xuéshēng","murid"],["书","shū","buku"],["笔","bǐ","pena"],["书包","shūbāo","tas sekolah"],["红色","hóngsè","merah"],["蓝色","lánsè","biru"],["黄色","huángsè","kuning"],["绿色","lǜsè","hijau"],["头","tóu","kepala"],["手","shǒu","tangan"],["眼睛","yǎnjing","mata"],["学校","xuéxiào","sekolah"],["家","jiā","rumah"],["飞机","fēijī","pesawat"],["帽子","màozi","topi"],["鞋子","xiézi","sepatu"],["公园","gōngyuán","taman"],["唱歌","chànggē","menyanyi"],["画画","huàhuà","menggambar"],["游泳","yóuyǒng","berenang"]];
+const TONES=[["mā","ibu",1],["má","rami",2],["mǎ","kuda",3],["mà","memarahi",4],["bā","delapan",1],["nǐ","kamu",3],["shì","adalah",4],["shū","buku",1],["yú","ikan",2],["shuǐ","air",3],["rè","panas",4],["hǎo","baik",3],["tā","dia",1],["lěng","dingin",3],["dà","besar",4],["rén","orang",2],["māo","kucing",1],["gǒu","anjing",3],["qù","pergi",4],["hé","dan",2],["shén","apa (shénme)",2],["xiǎo","kecil",3]];
+const SENTS=[[["我","是","学生"],"Saya adalah murid"],[["我","叫","安娜"],"Nama saya Anna"],[["我","喜欢","苹果"],"Saya suka apel"],[["我","有","一只","猫"],"Saya punya seekor kucing"],[["我","要","水"],"Saya mau air"],[["我","会","游泳"],"Saya bisa berenang"],[["这","是","我的","书"],"Ini adalah buku saya"],[["书","在","桌子","上"],"Buku ada di atas meja"],[["我","不","喜欢","牛奶"],"Saya tidak suka susu"],[["他","是","老师"],"Dia adalah guru"],[["我","去","学校"],"Saya pergi ke sekolah"],[["妈妈","在","厨房"],"Ibu ada di dapur"]];
+const NUMS=[[1,"一","yī"],[2,"二","èr"],[3,"三","sān"],[4,"四","sì"],[5,"五","wǔ"],[6,"六","liù"],[7,"七","qī"],[8,"八","bā"],[9,"九","jiǔ"],[10,"十","shí"],[11,"十一","shíyī"],[12,"十二","shí'èr"],[13,"十三","shísān"],[15,"十五","shíwǔ"],[16,"十六","shíliù"],[18,"十八","shíbā"],[20,"二十","èrshí"]];
+const MEAS=[["猫","māo","kucing","只"],["狗","gǒu","anjing","只"],["鸟","niǎo","burung","只"],["兔子","tùzi","kelinci","只"],["书","shū","buku","本"],["水","shuǐ","air","杯"],["牛奶","niúnǎi","susu","杯"],["果汁","guǒzhī","jus","杯"],["人","rén","orang","个"],["苹果","píngguǒ","apel","个"],["学生","xuéshēng","murid","个"],["香蕉","xiāngjiāo","pisang","个"]];
+const MEXP={"只":"只 (zhī) untuk hewan","本":"本 (běn) untuk buku","杯":"杯 (bēi) untuk minuman segelas","个":"个 (gè) kata ukur umum"};
+const DAYS=[["Senin","星期一","xīngqīyī"],["Selasa","星期二","xīngqī'èr"],["Rabu","星期三","xīngqīsān"],["Kamis","星期四","xīngqīsì"],["Jumat","星期五","xīngqīwǔ"],["Sabtu","星期六","xīngqīliù"],["Minggu","星期日","xīngqīrì"],["hari ini","今天","jīntiān"],["besok","明天","míngtiān"],["kemarin","昨天","zuótiān"],["pagi","早上","zǎoshang"],["malam","晚上","wǎnshang"],["siang","中午","zhōngwǔ"],["sore","下午","xiàwǔ"]];
+const DIALOG=[["你叫什么名字？","nǐ jiào shénme míngzi? (Siapa namamu?)","我叫安娜。",["我八岁。","我去学校。","这是书。"]],["你几岁？","nǐ jǐ suì? (Umur berapa?)","我八岁。",["我叫大卫。","我喜欢猫。","再见！"]],["这是什么？","zhè shì shénme? (Ini apa?)","这是书。",["我是学生。","我有猫。","今天很热。"]],["你喜欢苹果吗？","nǐ xǐhuān píngguǒ ma? (Suka apel?)","我喜欢苹果。",["我去公园。","他是老师。","书在桌子上。"]],["你要什么？","nǐ yào shénme? (Mau apa?)","我要水。",["我会游泳。","今天星期一。","这是我的家。"]],["你去哪儿？","nǐ qù nǎr? (Mau ke mana?)","我去学校。",["我八岁。","我喜欢蓝色。","我有一本书。"]],["今天星期几？","jīntiān xīngqī jǐ? (Hari ini hari apa?)","今天星期一。",["明天很冷。","我叫丽丽。","我要米饭。"]],["你有铅笔吗？","nǐ yǒu qiānbǐ ma? (Punya pensil?)","我有。给你！",["我去商店。","她是我的妈妈。","我会唱歌。"]],["再见！","zàijiàn! (Sampai jumpa!)","再见！",["你好！","谢谢！","我叫安娜。"]],["谢谢你！","xièxie nǐ! (Terima kasih!)","不用谢！",["我八岁。","这是猫。","我去学校。"]]];
+const GAMES=[
+ ["vocab","Tebak kata","Hanzi ke arti · Modul 5–11","ti-cards","#EEEDFE","#3C3489"],
+ ["tone","Tebak nada","Nada 1–4 · Modul 3","ti-music","#E1F5EE","#085041"],
+ ["sentence","Susun kalimat","Pola kalimat · Modul 18–20","ti-puzzle","#FAECE7","#712B13"],
+ ["number","Cocokkan angka","Angka 1–20 · Modul 5","ti-123","#FAEEDA","#633806"],
+ ["measure","Kata ukur","个 只 本 杯 · Modul 21","ti-ruler-2","#FBEAF0","#72243E"],
+ ["pinyin","Tebak pinyin","Cara baca hanzi · Modul 2","ti-abc","#E6F1FB","#0C447C"],
+ ["days","Hari & waktu","Kalender · Modul 12","ti-calendar","#EAF3DE","#27500A"],
+ ["dialog","Lengkapi dialog","Percakapan · Modul 24","ti-message-circle","#E1F5EE","#085041"],
+ ["memory","Kartu memori","Pasangkan hanzi & arti","ti-layout-grid","#EEEDFE","#3C3489"]];
+const TITLES={};GAMES.forEach(g=>TITLES[g[0]]=g[1]);
+document.getElementById('menugrid').innerHTML=GAMES.map(g=>
+ '<div class="gcard" onclick="startGame(\''+g[0]+'\')">'
+ +'<div style="width:38px;height:38px;border-radius:50%;background:'+g[4]+';display:flex;align-items:center;justify-content:center;margin-bottom:8px;"><i class="ti '+g[3]+'" style="font-size:19px;color:'+g[5]+'" aria-hidden="true"></i></div>'
+ +'<p style="font-weight:500;font-size:14px;margin:0 0 2px;">'+g[1]+'</p>'
+ +'<p style="font-size:12px;color:var(--text-secondary);margin:0;">'+g[2]+'</p></div>').join('');
+
+let mode,qs,qi,score,streak,built,lock,mem;
+const g=document.getElementById('game'),menu=document.getElementById('menu');
+function shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return s.replace(/'/g,"\\'")}
+function startGame(m){mode=m;score=0;streak=0;qi=0;lock=false;
+ if(m==='vocab')qs=shuf(VOCAB).slice(0,8);
+ if(m==='tone')qs=shuf(TONES).slice(0,8);
+ if(m==='sentence')qs=shuf(SENTS).slice(0,6);
+ if(m==='number')qs=shuf(NUMS).slice(0,8);
+ if(m==='measure')qs=shuf(MEAS).slice(0,8);
+ if(m==='pinyin')qs=shuf(VOCAB).slice(0,8);
+ if(m==='days')qs=shuf(DAYS).slice(0,8);
+ if(m==='dialog')qs=shuf(DIALOG).slice(0,8);
+ if(m==='memory'){initMem();menu.style.display='none';renderMem();return}
+ menu.style.display='none';render()}
+function head(){const total=qs.length;return '<div style="display:flex;align-items:center;gap:10px;margin:0 0 1rem;flex-wrap:wrap;">'
+ +'<button onclick="backMenu()" style="font-size:13px;padding:6px 12px;" aria-label="Kembali ke menu"><i class="ti ti-arrow-left" aria-hidden="true"></i> Menu</button>'
+ +'<span style="font-size:14px;font-weight:500;">'+TITLES[mode]+'</span>'
+ +'<span style="font-size:13px;color:var(--text-secondary);margin-left:auto;">Soal '+(qi+1)+' / '+total+'</span>'
+ +'<span style="font-size:13px;color:#854F0B;background:#FAEEDA;padding:3px 10px;border-radius:12px;"><i class="ti ti-star" style="font-size:13px" aria-hidden="true"></i> '+score+'</span></div>'
+ +'<div style="height:6px;background:var(--surface-1);border-radius:3px;margin:0 0 1.25rem;"><div style="height:6px;width:'+Math.round(qi/total*100)+'%;background:#1D9E75;border-radius:3px;"></div></div>'}
+function backMenu(){g.innerHTML='';menu.style.display='block'}
+function fb(ok,extra){streak=ok?streak+1:0;if(ok)score++;
+ document.getElementById('fb').innerHTML='<div style="margin:10px 0;padding:10px 14px;border-radius:var(--radius);background:var(--bg-'+(ok?'success':'danger')+');color:var(--text-'+(ok?'success':'danger')+');font-size:14px;">'
+ +(ok?'Benar! '+(streak>=3?'Hebat, '+streak+' berturut-turut!':'Bagus sekali.'):'Belum tepat. '+extra)+'</div>'
+ +'<button onclick="next()" style="font-size:14px;">Lanjut <i class="ti ti-arrow-right" aria-hidden="true"></i></button>'}
+function next(){qi++;lock=false;if(qi>=qs.length){finish()}else{render()}}
+function finish(){const total=qs.length,p=Math.round(score/total*100);
+ let msg=p===100?'Sempurna! Kamu jagoan Mandarin!':p>=70?'Hebat! Terus berlatih ya.':'Semangat! Ulangi lagi supaya makin lancar.';
+ const n=p===100?3:p>=70?2:1;let stars='';
+ for(let i=0;i<3;i++)stars+='<i class="ti ti-star" style="font-size:28px;color:'+(i<n?'#EF9F27':'var(--text-muted)')+';margin:0 3px;" aria-hidden="true"></i>';
+ g.innerHTML='<div style="text-align:center;padding:1.5rem 0;">'+stars
+ +'<p style="font-size:24px;font-weight:500;margin:12px 0 4px;">'+score+' dari '+total+' benar</p>'
+ +'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 1.25rem;">'+msg+'</p>'
+ +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
+ +'<button onclick="startGame(mode)" style="font-size:14px;"><i class="ti ti-refresh" aria-hidden="true"></i> Main lagi</button>'
+ +'<button onclick="backMenu()" style="font-size:14px;">Pilih game lain</button>'
+ +'<button onclick="sendPrompt(\'Buatkan 5 soal latihan Mandarin anak yang lebih menantang tentang '+esc(TITLES[mode].toLowerCase())+'\')" style="font-size:14px;">Soal lebih sulit ↗</button>'
+ +'</div></div>'}
+function mcq(promptTxt,big,sub,opts,cb){
+ g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 4px;">'+promptTxt+'</p>'
+ +'<p style="font-size:42px;margin:0;line-height:1.2;">'+big+'</p>'
+ +(sub?'<p style="font-size:15px;color:#534AB7;margin:2px 0 1rem;font-style:italic;">'+sub+'</p>':'<div style="height:1rem;"></div>')
+ +opts.map((o,i)=>'<button class="opt" data-k="'+i+'">'+o.h+'</button>').join('')+'<div id="fb"></div>';
+ document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>cb(b,opts[parseInt(b.dataset.k)]))}
+function grade(btn,ok,exp){if(lock)return;lock=true;
+ document.querySelectorAll('.opt,.chip').forEach(b=>b.style.pointerEvents='none');
+ btn.style.background=ok?'var(--bg-success)':'var(--bg-danger)';fb(ok,exp)}
+function render(){
+ if(mode==='vocab'){const q=qs[qi];const wrong=shuf(VOCAB.filter(v=>v[2]!==q[2])).slice(0,3);
+  mcq('Apa arti kata ini?',q[0],q[1],shuf(wrong.concat([q])).map(v=>({h:v[2],v:v[2]})),
+   (b,o)=>grade(b,o.v===q[2],'Jawabannya: '+q[2]+' ('+q[0]+' '+q[1]+').'))}
+ if(mode==='pinyin'){const q=qs[qi];const wrong=shuf(VOCAB.filter(v=>v[1]!==q[1])).slice(0,3);
+  mcq('Bagaimana cara membaca hanzi ini? (artinya: '+q[2]+')',q[0],'',shuf(wrong.concat([q])).map(v=>({h:v[1],v:v[1]})),
+   (b,o)=>grade(b,o.v===q[1],'Bacanya: '+q[1]+'.'))}
+ if(mode==='tone'){const q=qs[qi];
+  g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 4px;">Nada berapakah kata ini? (artinya: '+q[1]+')</p>'
+  +'<p style="font-size:42px;margin:0 0 1rem;line-height:1.2;">'+q[0]+'</p>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">'
+  +[[1,'Datar tinggi','#0C447C'],[2,'Naik','#085041'],[3,'Turun lalu naik','#633806'],[4,'Turun tajam','#712B13']].map(t=>
+   '<button class="opt" style="text-align:center;margin:0;" onclick="grade(this,'+(t[0]===q[2])+',\''+esc(q[0]+' adalah nada '+q[2]+'.')+'\')"><span style="display:block;font-size:19px;font-weight:500;color:'+t[2]+';">Nada '+t[0]+'</span><span style="display:block;font-size:12px;color:var(--text-secondary);">'+t[1]+'</span></button>').join('')
+  +'</div><div id="fb"></div>'}
+ if(mode==='number'){const q=qs[qi];const wrong=shuf(NUMS.filter(n=>n[0]!==q[0])).slice(0,3);
+  g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 4px;">Mana hanzi untuk angka ini?</p>'
+  +'<p style="font-size:42px;font-weight:500;margin:0 0 1rem;line-height:1.2;">'+q[0]+'</p>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">'
+  +shuf(wrong.concat([q])).map(o=>'<button class="opt" style="text-align:center;margin:0;" onclick="grade(this,'+(o[0]===q[0])+',\''+esc(q[0]+' = '+q[1]+' ('+q[2]+').')+'\')"><span style="display:block;font-size:25px;">'+o[1]+'</span><span style="display:block;font-size:12px;color:var(--text-secondary);">'+o[2]+'</span></button>').join('')
+  +'</div><div id="fb"></div>'}
+ if(mode==='measure'){const q=qs[qi];
+  g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 4px;">Pilih kata ukur yang tepat untuk '+q[2]+':</p>'
+  +'<p style="font-size:38px;margin:0 0 1rem;line-height:1.2;">一 <span style="color:#D4537E;">___</span> '+q[0]+' <span style="font-size:15px;color:var(--text-secondary);font-style:italic;">('+q[1]+')</span></p>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">'
+  +shuf(["个","只","本","杯"]).map(o=>'<button class="opt" style="text-align:center;margin:0;" onclick="grade(this,'+(o===q[3])+',\''+esc('Yang tepat: 一'+q[3]+q[0]+'. '+MEXP[q[3]])+'\')"><span style="display:block;font-size:25px;">'+o+'</span></button>').join('')
+  +'</div><div id="fb"></div>'}
+ if(mode==='days'){const q=qs[qi];const wrong=shuf(DAYS.filter(d=>d[1]!==q[1])).slice(0,3);
+  mcq('Apa bahasa Mandarin dari:',q[0],'',shuf(wrong.concat([q])).map(d=>({h:'<span style="font-size:19px;">'+d[1]+'</span> <span style="font-size:13px;color:var(--text-secondary);">'+d[2]+'</span>',v:d[1]})),
+   (b,o)=>grade(b,o.v===q[1],'Jawabannya: '+q[1]+' ('+q[2]+').'))}
+ if(mode==='dialog'){const q=qs[qi];
+  g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 8px;">Pilih jawaban yang paling cocok:</p>'
+  +'<div style="background:var(--surface-1);border-radius:12px;padding:10px 14px;margin:0 0 1rem;max-width:85%;">'
+  +'<p style="font-size:22px;margin:0;">'+q[0]+'</p><p style="font-size:13px;color:var(--text-secondary);margin:2px 0 0;font-style:italic;">'+q[1]+'</p></div>'
+  +shuf(q[3].concat([q[2]])).map(o=>'<button class="opt" onclick="grade(this,'+(o===q[2])+',\''+esc('Jawaban yang cocok: '+q[2])+'\')">'+o+'</button>').join('')
+  +'<div id="fb"></div>'}
+ if(mode==='sentence'){const q=qs[qi];built=[];const chips=shuf(q[0].map((w,i)=>[w,i]));
+  g.innerHTML=head()+'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 4px;">Susun kalimat: <span style="font-weight:500;color:var(--text-primary);">'+q[1]+'</span></p>'
+  +'<div id="slot" style="min-height:52px;border:1.5px dashed var(--border-strong);border-radius:var(--radius);padding:8px;margin:0 0 10px;font-size:22px;"></div>'
+  +'<div id="chips">'+chips.map(c=>'<button class="chip" data-i="'+c[1]+'" onclick="pick(this)">'+c[0]+'</button>').join('')+'</div>'
+  +'<div style="margin-top:8px;"><button onclick="undoChip()" style="font-size:13px;"><i class="ti ti-arrow-back-up" aria-hidden="true"></i> Hapus terakhir</button></div><div id="fb"></div>'}}
+function pick(btn){if(lock)return;built.push(parseInt(btn.dataset.i));btn.style.visibility='hidden';
+ const q=qs[qi];document.getElementById('slot').textContent=built.map(i=>q[0][i]).join(' ');
+ if(built.length===q[0].length){lock=true;const ok=built.every((v,idx)=>v===idx);
+  document.getElementById('slot').style.borderColor=ok?'#1D9E75':'#E24B4A';
+  fb(ok,'Urutan yang benar: '+q[0].join('')+'.')}}
+function undoChip(){if(lock||!built.length)return;const last=built.pop();
+ document.querySelector('.chip[data-i="'+last+'"]').style.visibility='visible';
+ const q=qs[qi];document.getElementById('slot').textContent=built.map(i=>q[0][i]).join(' ')}
+function initMem(){const pairs=shuf(VOCAB).slice(0,6);let cards=[];
+ pairs.forEach((p,k)=>{cards.push({k:k,t:p[0]+' '+p[1],done:false});cards.push({k:k,t:p[2],done:false})});
+ mem={cards:shuf(cards),open:[],moves:0,found:0,busy:false}}
+function renderMem(){
+ g.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin:0 0 1rem;flex-wrap:wrap;">'
+ +'<button onclick="backMenu()" style="font-size:13px;padding:6px 12px;" aria-label="Kembali ke menu"><i class="ti ti-arrow-left" aria-hidden="true"></i> Menu</button>'
+ +'<span style="font-size:14px;font-weight:500;">Kartu memori</span>'
+ +'<span style="font-size:13px;color:var(--text-secondary);margin-left:auto;">Pasangan: '+mem.found+' / 6</span>'
+ +'<span style="font-size:13px;color:var(--text-secondary);">Langkah: '+mem.moves+'</span></div>'
+ +'<p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px;">Buka dua kartu dan pasangkan hanzi dengan artinya.</p>'
+ +'<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">'
+ +mem.cards.map((c,i)=>{
+   const openNow=mem.open.includes(i);
+   if(c.done)return '<div class="mem" style="background:var(--bg-success);color:var(--text-success);border-color:transparent;cursor:default;">'+c.t+'</div>';
+   if(openNow)return '<div class="mem" style="background:#EEEDFE;color:#3C3489;border-color:#AFA9EC;">'+c.t+'</div>';
+   return '<div class="mem" onclick="flip('+i+')" style="color:var(--text-muted);"><i class="ti ti-help" style="font-size:20px;" aria-hidden="true"></i></div>'}).join('')
+ +'</div><div id="memfb" style="margin-top:12px;"></div>'}
+function flip(i){if(mem.busy||mem.open.includes(i)||mem.cards[i].done)return;
+ mem.open.push(i);renderMem();
+ if(mem.open.length===2){mem.busy=true;mem.moves++;
+  const a=mem.cards[mem.open[0]],b=mem.cards[mem.open[1]];
+  if(a.k===b.k){a.done=true;b.done=true;mem.found++;mem.open=[];mem.busy=false;renderMem();
+   if(mem.found===6)memFinish()}
+  else{setTimeout(()=>{mem.open=[];mem.busy=false;renderMem()},800)}}}
+function memFinish(){const n=mem.moves<=9?3:mem.moves<=13?2:1;let stars='';
+ for(let i=0;i<3;i++)stars+='<i class="ti ti-star" style="font-size:28px;color:'+(i<n?'#EF9F27':'var(--text-muted)')+';margin:0 3px;" aria-hidden="true"></i>';
+ document.getElementById('memfb').innerHTML='<div style="text-align:center;padding:1rem 0;">'+stars
+ +'<p style="font-size:20px;font-weight:500;margin:10px 0 4px;">Semua pasangan ditemukan dalam '+mem.moves+' langkah</p>'
+ +'<p style="font-size:14px;color:var(--text-secondary);margin:0 0 1rem;">'+(n===3?'Ingatanmu luar biasa!':n===2?'Bagus! Coba lagi supaya makin cepat.':'Terus berlatih, pasti makin hebat!')+'</p>'
+ +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">'
+ +'<button onclick="startGame(\'memory\')" style="font-size:14px;"><i class="ti ti-refresh" aria-hidden="true"></i> Main lagi</button>'
+ +'<button onclick="backMenu()" style="font-size:14px;">Pilih game lain</button></div></div>'}
+</script>
