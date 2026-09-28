@@ -84,6 +84,12 @@
   --text-primary: #EEF1F8; --text-secondary: #A7B0C7; --text-muted: #737D96;
   --teal: #17796F; --teal-bright: #35C7B5; --teal-deep: #7FDCC0;
   --coral: #CE4034; --coral-bright: #FF7C71; --coral-deep: #9E2F26;
+  .copyright {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
   --gold: #FFC658; --accent-soft: #1E3D3A;
   --bg-success: #17392F; --text-success: #7FDCC0;
   --bg-danger: #45211C; --text-danger: #F7A99C;
